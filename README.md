@@ -1,5 +1,9 @@
 # Milestone_1
 
+TODO: aggiungere istogramma ticket su jira vs ticket solo su git
+
+fare confronto tra le date su jira e git
+
 Ricerca di ticket specifici di JIRA
 
 Il progetto è: PDFBox (link: https://issues.apache.org/jira/browse/PDFBOX)
