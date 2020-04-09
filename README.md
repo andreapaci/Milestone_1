@@ -10,6 +10,12 @@ TODO:
 
 -La vulnerabilità di Log, è un problema o fa nulla?
 
+- confronta i risultati tra il programma e quelli effettivi su Jira/git
+
+- vedi se funziona sia su Parquet, PDFBOX e altri progetti
+
+
+
 
 Ricerca di ticket specifici di JIRA
 
