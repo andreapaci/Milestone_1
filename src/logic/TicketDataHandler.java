@@ -4,8 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 
 import entity.BugFixPerMonth;
@@ -15,7 +13,9 @@ import entity.Commit;
 public class TicketDataHandler 
 {
 	
-	public TicketDataHandler() { }
+	public TicketDataHandler() { 
+		//Costruttore vuoto poichè non è necessario inizializzare dati
+	}
 	
 	public void analyzeAndExportData(String projName, String gitRepoURL, Commit[] commits)
 	{
@@ -84,7 +84,7 @@ public class TicketDataHandler
 	{
 		
 		FileLogger.getLogger().info("Aggiunta dei mesi mancanti\n\n");
-		ArrayList<BugFixPerMonth> filledBugFix = new ArrayList<BugFixPerMonth>();
+		ArrayList<BugFixPerMonth> filledBugFix = new ArrayList<>();
 		filledBugFix.add(bugFix[0]);
 		
 		for(int i = 1; i < bugFix.length - 1; i++)
@@ -108,7 +108,7 @@ public class TicketDataHandler
 		
 		filledBugFix.add(bugFix[bugFix.length - 1]);
 		
-		return (BugFixPerMonth[]) (filledBugFix.toArray(new BugFixPerMonth[0]));
+		return filledBugFix.toArray(new BugFixPerMonth[0]);
 	}
 	
 
@@ -118,7 +118,7 @@ public class TicketDataHandler
 	//Estrapola il numero di bug fix per ogni mese
 	private BugFixPerMonth[] retreiveBugFixPerMonth(Commit[] commits)
 	{
-		ArrayList<BugFixPerMonth> bugFixPerMonth = new ArrayList<BugFixPerMonth>();
+		ArrayList<BugFixPerMonth> bugFixPerMonth = new ArrayList<>();
 		
 		
 		for(Commit commit : commits)
@@ -139,7 +139,7 @@ public class TicketDataHandler
 			FileLogger.getLogger().warning("La somma dei bug fix di tutti i mesi (" + counter + ") è diversa dal numero di commit (" + commits.length + ")");
 		
 		
-		return (BugFixPerMonth[]) (bugFixPerMonth.toArray(new BugFixPerMonth[0]));
+		return bugFixPerMonth.toArray(new BugFixPerMonth[0]);
 		
 		
 	}
@@ -173,63 +173,70 @@ public class TicketDataHandler
 		
 		
 		File f= new File("bug_fix_per_month.csv");
+		BufferedWriter br = null;
 		//Elimino il file se già esistente
-		f.delete();
+		if(!f.delete()) throw new IOException();
 		
-		BufferedWriter br = new BufferedWriter(new FileWriter("bug_fix_per_month.csv"));
-		StringBuilder sb = new StringBuilder();
-		
-		float mean = mean(bugFixes);
-		float mean3std = (mean(bugFixes) + 3 * stdDeviation(bugFixes));
-		float negMean3std = (mean(bugFixes) - 3 * stdDeviation(bugFixes));
-		
-		//Non ha senso tenere conto di un valore negativo poichè non vi saranno valori sotto quella soglia
-		if(negMean3std < 0) negMean3std = 0;
-		
-		sb.append("Project name");
-		sb.append(";");
-		sb.append(projName);
-		sb.append("\n");
-		
-		sb.append("GitHub repository link");
-		sb.append(";");
-		sb.append(gitRepoURL);
-		sb.append("\n\n");
-		
-		sb.append("Non-linked commits");
-		sb.append(";");
-		sb.append(nonLinkedCommits);
-		sb.append("\n");
-		
-		sb.append("Non-linked commits Percentage");
-		sb.append(";");
-		sb.append(Float.toString(nonLinkedCommPercentage).replace(".", ","));
-		sb.append("\n\n");
-		
-		sb.append("MONTH-YEAR;NUMBER BUG FIXED;MEAN;MEAN+3STD;MEAN-3STD\n");
+		try {
+			br = new BufferedWriter(new FileWriter("bug_fix_per_month.csv"));
+			StringBuilder sb = new StringBuilder();
+			
+			float mean = mean(bugFixes);
+			float mean3std = (mean(bugFixes) + 3 * stdDeviation(bugFixes));
+			float negMean3std = (mean(bugFixes) - 3 * stdDeviation(bugFixes));
+			
+			//Non ha senso tenere conto di un valore negativo poichè non vi saranno valori sotto quella soglia
+			if(negMean3std < 0) negMean3std = 0;
+			
+			sb.append("Project name");
+			sb.append(";");
+			sb.append(projName);
+			sb.append("\n");
+			
+			sb.append("GitHub repository link");
+			sb.append(";");
+			sb.append(gitRepoURL);
+			sb.append("\n\n");
+			
+			sb.append("Non-linked commits");
+			sb.append(";");
+			sb.append(nonLinkedCommits);
+			sb.append("\n");
+			
+			sb.append("Non-linked commits Percentage");
+			sb.append(";");
+			sb.append(Float.toString(nonLinkedCommPercentage).replace(".", ","));
+			sb.append("\n\n");
+			
+			sb.append("MONTH-YEAR;NUMBER BUG FIXED;MEAN;MEAN+3STD;MEAN-3STD\n");
 
 		
-		for (BugFixPerMonth bugFix : bugFixes) 
-		{
-			if(bugFix.getYear() != 1970)
+			for (BugFixPerMonth bugFix : bugFixes) 
 			{
-				sb.append(bugFix.getMonth());
-				sb.append("-");
-				sb.append(bugFix.getYear());
-				sb.append(";");
-				sb.append(bugFix.getBugFix());
-				sb.append(";");
-				sb.append(Float.toString(mean).replace(".", ","));
-				sb.append(";");
-				sb.append(Float.toString(mean3std).replace(".", ","));
-				sb.append(";");
-				sb.append(Float.toString(negMean3std).replace(".", ","));
-				sb.append("\n");
+				if(bugFix.getYear() != 1970)
+				{
+					sb.append(bugFix.getMonth());
+					sb.append("-");
+					sb.append(bugFix.getYear());
+					sb.append(";");
+					sb.append(bugFix.getBugFix());
+					sb.append(";");
+					sb.append(Float.toString(mean).replace(".", ","));
+					sb.append(";");
+					sb.append(Float.toString(mean3std).replace(".", ","));
+					sb.append(";");
+					sb.append(Float.toString(negMean3std).replace(".", ","));
+					sb.append("\n");
+				}
 			}
-		}
 
-		br.write(sb.toString());
-		br.close();
+			br.write(sb.toString());
+		}
+		catch(Exception e) { throw new IOException(); }
+		finally
+		{
+			br.close();
+		}
 	}
 	
 	//Funzione usata per il calcolo della media

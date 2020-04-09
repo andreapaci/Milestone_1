@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -27,7 +28,7 @@ public class JsonJiraHandler
 		int maxResults = 0;				//Punto finale da cui estrapolare il file JSON (escluso)
 		int total; 						//Numero totale di elementi presenti da estrapolare
 		ArrayList<String> ticketIDs =	//Array di stringhe di ID dei ticket
-				new ArrayList<String>();
+				new ArrayList<>();
 		
 		
 		do {
@@ -58,7 +59,7 @@ public class JsonJiraHandler
 		
 		FileLogger.getLogger().info("Numero di ticket trovati: " + total + "\n\n");
 		
-		return (String[]) (ticketIDs.toArray(new String[0]));
+		return ticketIDs.toArray(new String[0]);
 
 	}
 	
@@ -78,19 +79,20 @@ public class JsonJiraHandler
 	private  JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
 			
 		//Apro lo stream di connessione verso l'URL
-		InputStream is = new URL(url).openStream();
+		InputStream is = null;
 		JSONObject json = null;
 		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+			is = new URL(url).openStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String jsonText = readAll(rd);
 			json = new JSONObject(jsonText);
 				
 		}
 		catch(Exception e) { FileLogger.getLogger().error( "Errore nel recupero del file JSON: " + e.getMessage()); System.exit(1); }
-			
-		//Chiuso l'input stream
-		is.close();
-			
+		finally {	
+			//Chiuso l'input stream
+			is.close();
+		}	
 		return json;
 	}
 		

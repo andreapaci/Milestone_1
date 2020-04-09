@@ -16,18 +16,18 @@ import org.eclipse.jgit.revwalk.RevCommit;
 // raccolta di informazioni di una repository su Github
 public class GithubTicketHandler 
 {
-	private final String CLONEPATH = "tmp";		//Path su dove effettuare il clone della repository
+	private String clonePath = "tmp";		//Path su dove effettuare il clone della repository
 	private Git git;							//Repository Git presente localmente sulla macchina
 	
 	
 	//Questo metodo serve per restituire la coppia (Data, Ticket ID)
-	public Commit[] retreiveNumberTicketMonth(String URL, String[] tickets)
+	public Commit[] retreiveNumberTicketMonth(String url, String[] tickets)
 	{
 		
-		ArrayList<Commit> commits = new ArrayList<Commit>();
+		ArrayList<Commit> commits = new ArrayList<>();
 		
 		//Clonazione della repository
-		this.cloneRepository(URL);
+		this.cloneRepository(url);
 		
 		FileLogger.getLogger().info("Analisi del log delle commit.\n\n");
 		
@@ -41,7 +41,7 @@ public class GithubTicketHandler
 		
 		
 		//Eliminazione della directory temporanea con la repository
-		try { FileUtils.deleteDirectory(new File(CLONEPATH)); } 
+		try { FileUtils.deleteDirectory(new File(clonePath)); } 
 		catch (IOException e) { 
 			FileLogger.getLogger().warning("Errore nell'eliminnazione della directory del clone: " + e.getStackTrace()); 
 		}
@@ -54,14 +54,14 @@ public class GithubTicketHandler
 	
 	
 	//Metodo che clona la repository
-	private void cloneRepository(String URL)
+	private void cloneRepository(String url)
 	{
-		FileLogger.getLogger().info("Clonazione della repository su: " + System.getProperty("user.dir") + "\\" + this.CLONEPATH);
+		FileLogger.getLogger().info("Clonazione della repository su: " + System.getProperty("user.dir") + "\\" + this.clonePath);
 		
 		try {
 			this.git = Git.cloneRepository()
-			   		  .setURI(URL)
-			   		  .setDirectory(new File(this.CLONEPATH))
+			   		  .setURI(url)
+			   		  .setDirectory(new File(this.clonePath))
 			   		  .call();
 		} 
 		catch (GitAPIException e) {

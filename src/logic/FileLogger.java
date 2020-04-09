@@ -36,7 +36,7 @@ public class FileLogger {
 		logger = Logger.getLogger("LOG");
 		logger.addHandler(fileHandler);
 		
-		logger.info("Logger inizializzato su " + logPath);
+		logger.info("Logger inizializzato.");
 		
 	}
 	
