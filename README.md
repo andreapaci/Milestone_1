@@ -8,6 +8,8 @@ TODO:
 
 -levare smell e vulnerabilità
 
+-La vulnerabilità di Log, è un problema o fa nulla?
+
 
 Ricerca di ticket specifici di JIRA
 
