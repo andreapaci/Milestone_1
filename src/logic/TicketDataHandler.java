@@ -1,9 +1,11 @@
 package logic;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import entity.BugFixPerMonth;
@@ -172,13 +174,11 @@ public class TicketDataHandler
 	{
 		
 		
-		File f= new File("bug_fix_per_month.csv");
-		BufferedWriter br = null;
-		//Elimino il file se già esistente
-		if(!f.delete()) throw new IOException();
 		
-		try {
-			br = new BufferedWriter(new FileWriter("bug_fix_per_month.csv"));
+		//Elimino il file se già esistente
+		Files.delete(Paths.get("bug_fix_per_month.csv"));
+		
+		try (BufferedWriter br = new BufferedWriter(new FileWriter("bug_fix_per_month.csv"))) {
 			StringBuilder sb = new StringBuilder();
 			
 			float mean = mean(bugFixes);
@@ -233,10 +233,7 @@ public class TicketDataHandler
 			br.write(sb.toString());
 		}
 		catch(Exception e) { throw new IOException(); }
-		finally
-		{
-			br.close();
-		}
+
 	}
 	
 	//Funzione usata per il calcolo della media

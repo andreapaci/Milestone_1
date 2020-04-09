@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
@@ -79,20 +78,17 @@ public class JsonJiraHandler
 	private  JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
 			
 		//Apro lo stream di connessione verso l'URL
-		InputStream is = null;
+
 		JSONObject json = null;
-		try {
-			is = new URL(url).openStream();
+		try(InputStream is = new URL(url).openStream();) {
+			
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String jsonText = readAll(rd);
 			json = new JSONObject(jsonText);
 				
 		}
 		catch(Exception e) { FileLogger.getLogger().error( "Errore nel recupero del file JSON: " + e.getMessage()); System.exit(1); }
-		finally {	
-			//Chiuso l'input stream
-			is.close();
-		}	
+			
 		return json;
 	}
 		
