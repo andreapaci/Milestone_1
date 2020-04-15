@@ -2,18 +2,19 @@
 
 TODO: 
 
--aggiungere istogramma ticket su jira vs ticket solo su git
+- aggiungere istogramma ticket su jira vs ticket solo su git
 
--fare confronto tra le date su jira e git
+- fare confronto tra le date su jira e git
 
--levare smell e vulnerabilità
+- levare smell e vulnerabilità
 
--La vulnerabilità di Log, è un problema o fa nulla?
+- La vulnerabilità di Log, è un problema o fa nulla?
 
 - confronta i risultati tra il programma e quelli effettivi su Jira/git
 
 - vedi se funziona sia su Parquet, PDFBOX e altri progetti
 
+- si potrebbe ottimizzare aggiungendo prima tutti i mesi, e poi scorrere una volta solo i commit
 
 
 
@@ -26,4 +27,4 @@ Il case è: P (16) mod 3 = 1
 Quindi, il progetto è "numero di bug fixed"
 
 
-- Andrea Paci
+-Andrea Paci
