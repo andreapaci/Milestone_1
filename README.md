@@ -16,6 +16,7 @@ TODO:
 
 - si potrebbe ottimizzare aggiungendo prima tutti i mesi, e poi scorrere una volta solo i commit
 
+- Ma il tempo su cui fare il grafico va dal primo all'ultimo commit Fix o un qualsiasi tipo di commit (quindi dall'inizio del progetto alla fine)?
 
 
 Ricerca di ticket specifici di JIRA
