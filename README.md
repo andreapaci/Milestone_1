@@ -18,6 +18,9 @@ TODO:
 
 - Ma il tempo su cui fare il grafico va dal primo all'ultimo commit Fix o un qualsiasi tipo di commit (quindi dall'inizio del progetto alla fine)?
 
+- Effettuare i calcoli anche per i progetti mostrati nella seconda Milestone per fornire un report più completo
+
+
 
 Ricerca di ticket specifici di JIRA
 
