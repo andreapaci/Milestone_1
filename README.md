@@ -20,6 +20,9 @@ TODO:
 
 - Effettuare i calcoli anche per i progetti mostrati nella seconda Milestone per fornire un report più completo
 
+- Levare variabili hardcoded (come nome progetto - url git)
+
+
 
 
 Ricerca di ticket specifici di JIRA
