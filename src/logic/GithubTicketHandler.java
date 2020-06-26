@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+
 import entity.Commit;
+import entity.MultipleCommitList;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
@@ -17,14 +19,16 @@ import org.eclipse.jgit.revwalk.RevCommit;
 public class GithubTicketHandler 
 {
 	private String clonePath = "tmp";		//Path su dove effettuare il clone della repository
-	private Git git;							//Repository Git presente localmente sulla macchina
+	private Git git;						//Repository Git presente localmente sulla macchina
 	
 	
-	//Questo metodo serve per restituire la coppia (Data, Ticket ID)
-	public Commit[] retreiveNumberTicketMonth(String url, String[] tickets)
+	//Questo metodo serve per restituire l'insieme di commit con ticket e senza ticket
+	public MultipleCommitList retreiveNumberTicketMonth(String url, String[] tickets)
 	{
 		
-		ArrayList<Commit> commits = new ArrayList<>();
+		ArrayList<Commit> lastTicketCommits = new ArrayList<>();
+		ArrayList<Commit> allCommits;
+		MultipleCommitList multipleCommitList;
 		
 		//Clonazione della repository
 		this.cloneRepository(url);
@@ -33,11 +37,15 @@ public class GithubTicketHandler
 		
 		//Analisi del log dei commit per trovare l'ultimo commit relativo ad un ticket
 		for(String ticket : tickets)
-			commits.add(new Commit(ticket, retreiveLastCommitTicket(ticket)));
+			lastTicketCommits.add(new Commit(ticket, retreiveLastCommitTicket(ticket)));
 		
+		//Ottengo tutte le commit
+		allCommits = retriveAllCommits();
 		
 		//Chiusura repository
 		git.close();
+		
+		multipleCommitList = new MultipleCommitList((lastTicketCommits.toArray(new Commit[0])), (allCommits.toArray(new Commit[0])));
 		
 		
 		//Eliminazione della directory temporanea con la repository
@@ -46,7 +54,7 @@ public class GithubTicketHandler
 			FileLogger.getLogger().warning("Errore nell'eliminnazione della directory del clone: " + e.getStackTrace()); 
 		}
 		
-		return (Commit[]) (commits.toArray(new Commit[0]));
+		return multipleCommitList;
 		
 		
 	}
@@ -123,6 +131,33 @@ public class GithubTicketHandler
 		}
 		return false;
 		
+	}
+	
+	
+	//Metodo per fare il retrive di tutte le commit. Viene usato per vedere il rapporto tra ticket fixati e numero di commit
+	private ArrayList<Commit> retriveAllCommits(){
+		
+		ArrayList<Commit> commits = new ArrayList<>();
+		
+		//Recupero del log
+		
+		Iterable<RevCommit> log = null;
+				
+		try { log = git.log().call(); } 
+		catch (GitAPIException e) {FileLogger.getLogger().error("Errore nel recupero del log: " + e.getMessage()); System.exit(1);}
+				
+				
+		//Trovo la commit più recente per il ticket specificato da parametro
+		for(Iterator<RevCommit> iterator = log.iterator(); iterator.hasNext();) {
+			       	
+			RevCommit rev = iterator.next();
+			commits.add(new Commit("", new Date((long) rev.getCommitTime() * 1000L)));
+			       	
+		}
+				
+				
+		
+		return commits;
 	}
 	
 }

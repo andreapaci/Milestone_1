@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import entity.BugFixPerMonth;
 import entity.Commit;
+import entity.MultipleCommitList;
 
 //Classe che si occupa di effettuare operazioni di analisi ed esportazione sulle commit trovate
 public class TicketDataHandler 
@@ -18,24 +19,25 @@ public class TicketDataHandler
 		//Costruttore vuoto poichè non è necessario inizializzare dati
 	}
 	
-	public void analyzeAndExportData(String projName, String gitRepoURL, Commit[] commits)
+	public void analyzeAndExportData(String projName, String gitRepoURL, MultipleCommitList commits)
 	{
-		//Ordino i commitr in base alla data
+		//Ordino i commit in base alla data
 		
-		orderCommitsByDate(commits);
+		orderCommitsByDate(commits.getTicketCommits());
+		orderCommitsByDate(commits.getAllCommits());
 				
 		//Stampa dei commit trovati
 				
-		FileLogger.getLogger().info("\n\nStampa dei commit in ordine di data: " + commits.length + " Commits trovati in totale\n");
+		FileLogger.getLogger().info("\n\nStampa dei commit in ordine di data: " + commits.getTicketCommits().length + " Commits con ticket trovati in totale\n");
 				
-		for(Commit commit : commits)
+		for(Commit commit : commits.getTicketCommits())
 			FileLogger.getLogger().info(commit.getTicket() + " - " + commit.getDate());
 				
 				
 		//Estrapolazione dall'array di commit ad un array con elementi (mese/anno ; numero_commit), con aggiunta dei mesi mancanti
 				
-		BugFixPerMonth[] bugFix = addMissingMonths(retreiveBugFixPerMonth(commits));
-				
+		BugFixPerMonth[] bugFix = addMissingMonths(retreiveBugFixPerMonth(commits.getTicketCommits()));
+		BugFixPerMonth[] allCommits = addMissingMonths(retreiveBugFixPerMonth(commits.getAllCommits()));		
 				
 		//Cerco il numero commit non linkati e stampo la percentuale
 		
@@ -47,12 +49,12 @@ public class TicketDataHandler
 				break;
 			}
 						
-		FileLogger.getLogger().info("\n\n\n\nNumero di ticket non linkati: " + (float) nonLinkedCommits/ (float) commits.length*100 + "%\n\n");		
+		FileLogger.getLogger().info("\n\n\n\nNumero di ticket non linkati: " + (float) nonLinkedCommits/ (float) commits.getTicketCommits().length*100 + "%\n\n");		
 			
 		FileLogger.getLogger().info("Esportazione del file CSV\n");
 		
-		try { exportCSV(bugFix, projName, gitRepoURL, nonLinkedCommits, (float) nonLinkedCommits/ (float) commits.length*100); } 
-		catch (IOException e) { FileLogger.getLogger().error("Errore nel creare il file CSV."); System.exit(1);}
+		try { exportCSV(bugFix, allCommits, projName, gitRepoURL, nonLinkedCommits, (float) nonLinkedCommits/ (float) commits.getTicketCommits().length*100); } 
+		catch (IOException e) { FileLogger.getLogger().error("Errore nel creare il file CSV.");}
 				
 		
 				
@@ -116,7 +118,7 @@ public class TicketDataHandler
 	
 	
 	
-	//Estrapola il numero di bug fix per ogni mese
+	//Estrapola il numero di bug fix/commit per ogni mese
 	private BugFixPerMonth[] retreiveBugFixPerMonth(Commit[] commits)
 	{
 		ArrayList<BugFixPerMonth> bugFixPerMonth = new ArrayList<>();
@@ -169,15 +171,14 @@ public class TicketDataHandler
 	}
 	
 	//Esporta dati in CSV
-	private synchronized void exportCSV(BugFixPerMonth[] bugFixes, String projName, String gitRepoURL, int nonLinkedCommits, float nonLinkedCommPercentage) throws IOException
+	private synchronized void exportCSV(BugFixPerMonth[] bugFixes, BugFixPerMonth[] allCommits, String projName, String gitRepoURL, int nonLinkedCommits, float nonLinkedCommPercentage) throws IOException
 	{
 		
-		
-		
 		//Elimino il file se già esistente
-		Files.delete(Paths.get("bug_fix_per_month.csv"));
+		try { Files.delete(Paths.get("output/" + projName + "-bug_fix_per_month.csv")); }
+		catch(IOException e) { FileLogger.getLogger().warning("Nessun file da eliminare");}
 		
-		try (BufferedWriter br = new BufferedWriter(new FileWriter("bug_fix_per_month.csv"))) {
+		try (BufferedWriter br = new BufferedWriter(new FileWriter("output/" + projName + "-bug_fix_per_month.csv"))) {
 			StringBuilder sb = new StringBuilder();
 			
 			float mean = mean(bugFixes);
@@ -197,28 +198,31 @@ public class TicketDataHandler
 			sb.append(gitRepoURL);
 			sb.append("\n\n");
 			
-			sb.append("Non-linked commits");
+			sb.append("Non-linked tickets");
 			sb.append(";");
 			sb.append(nonLinkedCommits);
 			sb.append("\n");
 			
-			sb.append("Non-linked commits Percentage");
+			sb.append("Non-linked tickets Percentage");
 			sb.append(";");
 			sb.append(Float.toString(nonLinkedCommPercentage).replace(".", ","));
 			sb.append("\n\n");
 			
-			sb.append("MONTH-YEAR;NUMBER BUG FIXED;MEAN;MEAN+3STD;MEAN-3STD\n");
+			sb.append("MONTH-YEAR;NUMBER BUG FIXED;TOTAL COMMITS;MEAN;MEAN+3STD;MEAN-3STD\n");
 
 		
-			for (BugFixPerMonth bugFix : bugFixes) 
+			for(BugFixPerMonth bugFix : bugFixes) 
 			{
 				if(bugFix.getYear() != 1970)
 				{
+					
 					sb.append(bugFix.getMonth());
 					sb.append("-");
 					sb.append(bugFix.getYear());
 					sb.append(";");
 					sb.append(bugFix.getBugFix());
+					sb.append(";");
+					sb.append(findCommitsForMonthYear(allCommits, bugFix.getMonth(), bugFix.getYear()));
 					sb.append(";");
 					sb.append(Float.toString(mean).replace(".", ","));
 					sb.append(";");
@@ -231,9 +235,22 @@ public class TicketDataHandler
 
 			br.write(sb.toString());
 		}
-		catch(Exception e) { throw new IOException(); }
+		catch(Exception e) {throw new IOException(); }
 
 	}
+	
+	//Metodo che resituisce il numero totale di commit in un dato mese-anno
+	private int findCommitsForMonthYear(BugFixPerMonth[] allCommits, int month, int year) {
+		
+		for(BugFixPerMonth commit : allCommits) {
+			if(commit.getMonth() == month && commit.getYear() == year) return commit.getBugFix();
+		}
+		
+		FileLogger.getLogger().error("Errore: non è stato possibile trovare commit in quel mese/anno [" + month + ", " + year + "]" );
+		System.exit(1);
+		return -1;
+	}
+	
 	
 	//Funzione usata per il calcolo della media
 	private float mean(BugFixPerMonth[] bugFix)
@@ -245,7 +262,7 @@ public class TicketDataHandler
 		return (float) sum / (float) bugFix.length;
  	}
 	
-	//Funzione usata per il calcolo della varianza
+	//Funzione usata per il calcolo della deviazione standard
 	private float stdDeviation(BugFixPerMonth[] bugFix)
 	{
 		float mean = mean(bugFix);

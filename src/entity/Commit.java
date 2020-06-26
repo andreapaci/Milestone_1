@@ -14,6 +14,7 @@ public class Commit
 	{
 		this.ticket = ticket;
 		this.date = new Date(date.getTime());
+
 	}
 
 	public String getTicket() {
@@ -27,13 +28,13 @@ public class Commit
 	
 	//Serve per estrapolare il mese dalla data (numero da 1 a 12)
 	public int getMonth() {
-		LocalDate localDate = this.date.toInstant().atZone(ZoneId.of("CET")).toLocalDate();
+		LocalDate localDate = this.date.toInstant().atZone(ZoneId.of("Z")).toLocalDate();
 		return localDate.getMonthValue();
 	}
 	
 	//Serve per estrapolare l'anno della data (formato yyyy)
 	public int getYear() {
-		LocalDate localDate = this.date.toInstant().atZone(ZoneId.of("CET")).toLocalDate();
+		LocalDate localDate = this.date.toInstant().atZone(ZoneId.of("Z")).toLocalDate();
 		return localDate.getYear();
 	}
 

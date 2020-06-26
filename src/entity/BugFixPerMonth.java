@@ -1,7 +1,7 @@
 package entity;
 
 
-//Classe per contenere informazioni sul numero di bugfix per ogni mese
+//Classe per contenere informazioni sul numero di bugfix per ogni mese / commit per ogni mese
 public class BugFixPerMonth 
 {
 	private int bugFix;
